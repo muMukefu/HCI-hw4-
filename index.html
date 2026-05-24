@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>济事楼导览系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+        }
+
+        .search-bar {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .search-bar input {
+            width: 400px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            outline: none;
+            transition: width 0.3s;
+        }
+
+        .search-bar input:focus {
+            width: 500px;
+        }
+
+        .search-bar button {
+            margin-left: 10px;
+            padding: 12px 30px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+
+        .search-bar button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        /* 房间号快捷按钮区域 */
+        .room-buttons {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .room-buttons .label {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .room-buttons .buttons-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .room-btn {
+            width: 55px;
+            height: 40px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(79,172,254,0.4);
+        }
+
+        .room-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79,172,254,0.6);
+        }
+
+        .room-btn.active {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            box-shadow: 0 4px 12px rgba(255,107,107,0.6);
+        }
+
+        /* 图片展示区域 */
+        .image-display {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(79,172,254,0.4);
+            flex-shrink: 0;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(79,172,254,0.6);
+        }
+
+        .image-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .room-image {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .room-info {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .room-info .room-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4facfe;
+            margin-bottom: 10px;
+        }
+
+        .room-info .room-name {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .room-info .room-people {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .room-info .person-tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 5px 12px;
+            border-radius: 15px;
+            margin: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* 房间列表区域 */
+        .floors {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .floor-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .floor-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .room-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .room-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            border-color: #4facfe;
+        }
+
+        .room-card.active {
+            border-color: #ff6b6b;
+            background: #fff3f3;
+        }
+
+        .room-card .card-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .room-card .card-name {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .search-bar input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .search-bar button {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .image-display {
+                flex-direction: column;
+            }
+
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .room-image {
+                height: 250px;
+            }
+
+            .rooms-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .floors {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏢 济事楼导览系统</h1>
+            <p>济事楼4层房间信息总览</p>
+        </header>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="搜索房间号、名称或人员..." onkeyup="handleKeyup()">
+            <button onclick="searchRooms()">搜索</button>
+        </div>
+
+        <!-- 房间号快捷按钮 -->
+        <div class="room-buttons">
+            <div class="label">⭐ 点击下方按钮快速定位房间 ⭐</div>
+            <div class="buttons-row" id="roomButtonsContainer">
+                <!-- 按钮将通过JavaScript动态生成 -->
+            </div>
+        </div>
+
+        <!-- 图片展示区域 -->
+        <div class="image-display">
+            <button class="nav-btn" onclick="prevRoom()">‹</button>
+            <div class="image-container">
+                <img id="roomImage" class="room-image" src="" alt="房间图片">
+                <div class="room-info">
+                    <div class="room-number" id="displayRoomNumber">401</div>
+                    <div class="room-name" id="displayRoomName">学工办</div>
+                    <div class="room-people" id="displayRoomPeople"></div>
+                </div>
+            </div>
+            <button class="nav-btn" onclick="nextRoom()">›</button>
+        </div>
+
+        <!-- 楼层房间列表 -->
+        <div class="floors" id="floorsContainer">
+            <!-- 楼层内容将通过JavaScript动态加载 -->
+        </div>
+    </div>
+
+    <script>
+        // 济事楼4-5层房间数据（静态写死）
+        const allRooms = {
+            "4楼": [
+                {"room_number": "401", "name": "同济大学计算机科学与技术学院", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/401.jpg"},
+                {"room_number": "405", "name": "男洗手间", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/405.jpg"},
+                {"room_number": "406", "name": "女洗手间", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/406.jpg"},
+                {"room_number": "407", "name": "教育部工程研究中心实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/407.jpg"},
+                {"room_number": "408L", "name": "教师办公室", "people": ["史扬", "朱宏明", "赵钦佩"], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/408L.jpg"},
+                {"room_number": "408R", "name": "教师办公室", "people": ["唐伟", "程颖", "汪昱", "黄凯峰", "李文洁", "高嘉尧"], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/408R.jpg"},
+                {"room_number": "409L", "name": "教育部工程研究中心实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/409L.jpg"},
+                {"room_number": "409R", "name": "教育部工程研究中心实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/409R.jpg"},
+                {"room_number": "410", "name": "教师办公室", "people": ["王冬青"], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/410.jpg"},
+                {"room_number": "412", "name": "教师办公室/弱电间", "people": ["张慧娟"], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/412.jpg"},
+                {"room_number": "414", "name": "教师办公室", "people": ["杜庆峰"], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/414.jpg"},
+                {"room_number": "415", "name": "强电间", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/415.jpg"},
+                {"room_number": "416", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/416.jpg"},
+                {"room_number": "417", "name": "会议室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/417.jpg"},
+                {"room_number": "418L", "name": "教师办公室", "people": ["刘琴"], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/418L.jpg"},
+                {"room_number": "418R", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/418R.jpg"},
+                {"room_number": "419", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/419.jpg"},
+                {"room_number": "420", "name": "保安室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/420.jpg"},
+                {"room_number": "426", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/426.jpg"},
+                {"room_number": "428", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/428.jpg"},
+                {"room_number": "430", "name": "党员之家", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/430.jpg"},
+                {"room_number": "432", "name": "党员之家", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/432.jpg"},
+                {"room_number": "434", "name": "党员之家", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/434.jpg"},
+                {"room_number": "440", "name": "综合事务管理中心", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/440.jpg"},
+                {"room_number": "441", "name": "会议室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/441.jpg"},
+                {"room_number": "442", "name": "教学管理中心", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/442.jpg"},
+                {"room_number": "443", "name": "综合事务管理中心", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/443.jpg"},
+                {"room_number": "444", "name": "教学管理中心", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/444.jpg"},
+                {"room_number": "445", "name": "强电间", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/445.jpg"},
+                {"room_number": "446", "name": "学生思政工作中心", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/446.jpg"},
+                {"room_number": "447", "name": "女洗手间", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/447.jpg"},
+                {"room_number": "448", "name": "房间", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/448.jpg"},
+                {"room_number": "450L", "name": "党委书记办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/450L.jpg"},
+                {"room_number": "450R", "name": "校长办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/450R.jpg"},
+                {"room_number": "451-3", "name": "会议室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/451-3.jpg"},
+                {"room_number": "455", "name": "会议室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/455.jpg"},
+                {"room_number": "456", "name": "党委办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/456.jpg"},
+                {"room_number": "东北角厕所", "name": "东北角厕所", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/东北角厕所.jpg"},
+                {"room_number": "东电梯", "name": "东电梯", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/东电梯.jpg"},
+                {"room_number": "南空间", "name": "南空间", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/南空间.jpg"},
+            ],
+            "5楼": [
+                {"room_number": "501", "name": "院长办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/401.jpg"},
+                {"room_number": "502", "name": "副院长办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/405.jpg"},
+                {"room_number": "503", "name": "会议室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/406.jpg"},
+                {"room_number": "504", "name": "财务室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/407.jpg"},
+                {"room_number": "505", "name": "人事处", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/408L.jpg"},
+                {"room_number": "506", "name": "科研处", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/408R.jpg"},
+                {"room_number": "507", "name": "资料室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/409L.jpg"},
+                {"room_number": "508", "name": "接待室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/409R.jpg"},
+                {"room_number": "509", "name": "会议室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/410.jpg"},
+                {"room_number": "510", "name": "教师办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/412.jpg"},
+                {"room_number": "512", "name": "教师办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/414.jpg"},
+                {"room_number": "513", "name": "教师办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/415.jpg"},
+                {"room_number": "514", "name": "教师办公室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/416.jpg"},
+                {"room_number": "515", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/417.jpg"},
+                {"room_number": "516", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/418L.jpg"},
+                {"room_number": "517", "name": "会议室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/418R.jpg"},
+                {"room_number": "518", "name": "实验室", "people": [], "image": "https://raw.githubusercontent.com/muMukefu/HCI-hw4-/main/images/419.jpg"},
+            ]
+        };
+
+        // 所有房间列表（用于导航）
+        let allRoomsList = [];
+        let currentIndex = 0;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 构建所有房间列表
+            for (const floor of Object.keys(allRooms)) {
+                allRoomsList = allRoomsList.concat(allRooms[floor]);
+            }
+            
+            renderRoomButtons();
+            renderRooms(allRooms);
+            showRoom(allRoomsList[0]);
+        });
+
+        // 渲染房间号按钮
+        function renderRoomButtons() {
+            const container = document.getElementById('roomButtonsContainer');
+            container.innerHTML = '';
+            
+            for (const room of allRoomsList) {
+                const btn = document.createElement('button');
+                btn.className = 'room-btn';
+                btn.textContent = room.room_number;
+                btn.onclick = () => selectRoom(room.room_number);
+                container.appendChild(btn);
+            }
+        }
+
+        // 渲染房间列表
+        function renderRooms(rooms) {
+            const container = document.getElementById('floorsContainer');
+            container.innerHTML = '';
+
+            let hasRooms = false;
+
+            for (const floor of Object.keys(rooms)) {
+                if (rooms[floor].length === 0) continue;
+                hasRooms = true;
+
+                const floorSection = document.createElement('div');
+                floorSection.className = 'floor-section';
+                
+                floorSection.innerHTML = `
+                    <div class="floor-header">${floor}</div>
+                    <div class="rooms-grid">
+                        ${rooms[floor].map(room => `
+                            <div class="room-card" onclick="selectRoom('${room.room_number}')">
+                                <div class="card-number">${room.room_number}</div>
+                                <div class="card-name">${room.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(floorSection);
+            }
+
+            if (!hasRooms) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>未找到匹配的房间</h3>
+                        <p>请尝试其他搜索关键词</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 搜索房间
+        function searchRooms() {
+            const keyword = document.getElementById('searchInput').value.trim();
+            
+            if (!keyword) {
+                renderRooms(allRooms);
+                return;
+            }
+
+            const results = {"4楼": []};
+            
+            for (const floor of Object.keys(allRooms)) {
+                for (const room of allRooms[floor]) {
+                    if (room.room_number.includes(keyword) || 
+                        room.name.includes(keyword) ||
+                        room.people.some(person => person.includes(keyword))) {
+                        results[floor].push(room);
+                    }
+                }
+            }
+            
+            renderRooms(results);
+        }
+
+        function handleKeyup() {
+            if (event.key === 'Enter') {
+                searchRooms();
+            }
+        }
+
+        // 选择房间
+        function selectRoom(roomNumber) {
+            const room = allRoomsList.find(r => r.room_number === roomNumber);
+            if (room) {
+                showRoom(room);
+            }
+        }
+
+        // 显示房间信息和图片
+        function showRoom(room) {
+            // 更新当前索引
+            currentIndex = allRoomsList.findIndex(r => r.room_number === room.room_number);
+            
+            // 更新图片（使用房间数据中定义的image字段）
+            document.getElementById('roomImage').src = room.image;
+            
+            // 更新房间信息
+            document.getElementById('displayRoomNumber').textContent = room.room_number;
+            document.getElementById('displayRoomName').textContent = room.name;
+            
+            // 更新人员标签
+            if (room.people.length > 0) {
+                document.getElementById('displayRoomPeople').innerHTML = 
+                    room.people.map(p => `<span class="person-tag">${p}</span>`).join('');
+            } else {
+                document.getElementById('displayRoomPeople').innerHTML = '<span class="person-tag" style="background:#f0f0f0;color:#999;">暂无人员</span>';
+            }
+            
+            // 更新按钮和卡片的激活状态
+            updateActiveState(room.room_number);
+        }
+
+        // 更新激活状态
+        function updateActiveState(roomNumber) {
+            // 更新按钮状态
+            document.querySelectorAll('.room-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === roomNumber);
+            });
+            
+            // 更新卡片状态
+            document.querySelectorAll('.room-card').forEach(card => {
+                card.classList.toggle('active', card.querySelector('.card-number').textContent === roomNumber);
+            });
+        }
+
+        // 上一个房间
+        function prevRoom() {
+            currentIndex = (currentIndex - 1 + allRoomsList.length) % allRoomsList.length;
+            showRoom(allRoomsList[currentIndex]);
+        }
+
+        // 下一个房间
+        function nextRoom() {
+            currentIndex = (currentIndex + 1) % allRoomsList.length;
+            showRoom(allRoomsList[currentIndex]);
+        }
+    </script>
+</body>
+</html>
